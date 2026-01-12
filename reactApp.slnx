@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="reactapp.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+</Solution>
