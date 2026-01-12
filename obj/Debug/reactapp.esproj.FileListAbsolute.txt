@@ -1,1 +1,0 @@
-E:\MS VS insider\reactApp\obj\Debug\reactapp.esproj.CoreCompileInputs.cache

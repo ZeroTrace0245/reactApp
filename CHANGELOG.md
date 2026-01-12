@@ -1,12 +1,11 @@
 This file explains how Visual Studio created the project.
 
 The following tools were used to generate this project:
-- create-vite
+- Express generator
 
 The following steps were used to generate this project:
-- Create react project with create-vite: `npm init --yes vite@latest reactapp -- --template=react`.
-- Updating `vite.config.js` with port.
-- Create project file (`reactapp.esproj`).
+- Create express project with express-generator: `npx express-generator --view=pug E:\MS VS insider\Project_JAVA\Project_JAVA`.
+- Create project file (`Project_JAVA.esproj`).
 - Create `launch.json` to enable debugging.
 - Add project to solution.
 - Write this file.
