@@ -12,8 +12,9 @@ import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
+import javafx.geometry.HPos;
 import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
+import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -27,6 +28,7 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -78,9 +80,6 @@ public class DashboardView {
     private final Timeline realtimeTimeline = createRealtimeTimeline();
     private final Text navSectionLabel = new Text("Section: Dashboard");
     private Button activeNavButton;
-    private static final String NAV_BUTTON_STYLE = "-fx-background-color: transparent; -fx-text-fill: #bfc7ff; -fx-font-weight: 600; -fx-border-color: transparent; -fx-pref-width: 172; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.35), 5, 0, 0, 1);";
-    private static final String NAV_BUTTON_HOVER = "-fx-background-color: rgba(255,255,255,0.08); -fx-text-fill: #ffffff; -fx-font-weight: 600; -fx-border-color: transparent;";
-    private static final String NAV_BUTTON_ACTIVE = "-fx-background-color: rgba(88,101,242,0.45); -fx-text-fill: #ffffff; -fx-font-weight: 600; -fx-border-color: transparent;";
 
     public DashboardView(UserRepository repository, SettingsStore settingsStore) {
         this.repository = repository;
@@ -192,7 +191,7 @@ public class DashboardView {
 
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(16));
-        root.setStyle("-fx-background-color: #0b0d12;");
+        root.getStyleClass().add("app-root");
 
         loggedIn = currentUser;
         primaryStage = stage;
@@ -207,7 +206,7 @@ public class DashboardView {
         refreshUsers();
 
         Scene scene = new Scene(root);
-        Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+        applyStyles(scene);
         stage.setScene(scene);
         stage.setMaximized(true);
         stage.setResizable(true);
@@ -220,19 +219,22 @@ public class DashboardView {
     private VBox buildOverviewView(AppUser currentUser) {
         Text title = new Text("Green Grid - Utilities Dashboard");
         title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 26));
-        title.setFill(Color.web("#f5f7ff"));
+        title.getStyleClass().add("section-heading");
 
         Text subtitle = new Text("An eco-minded clinic overview with patient, inventory, and operational insights.");
         subtitle.setFont(Font.font("Segoe UI", 13));
-        subtitle.setFill(Color.web("#9ba4c0"));
+        subtitle.getStyleClass().add("section-subheading");
 
-        HBox statsRow = new HBox(12,
+        FlowPane statsRow = new FlowPane(12, 12,
                 createValueCard("Total Patients", String.valueOf(patients.size()), "#57F287"),
                 createValueCard("Beds Available", "24", "#1abc9c"),
                 createValueCard("Critical Alerts", "2", "#f04747"),
                 createValueCard("Open Complaints", "4", "#f3ba4d")
         );
-        statsRow.setAlignment(Pos.CENTER_LEFT);
+        statsRow.setColumnHalignment(HPos.LEFT);
+        statsRow.setRowValignment(VPos.CENTER);
+        statsRow.setPrefWrapLength(680);
+        statsRow.setMaxWidth(Double.MAX_VALUE);
 
         RoundedPane metricsPanel = createPanel("Key metrics", buildMetricBars());
         VBox.setVgrow(metricsPanel, Priority.NEVER);
@@ -264,18 +266,18 @@ public class DashboardView {
     private HBox buildHeader(AppUser currentUser) {
         Text userBanner = new Text("Signed in as " + currentUser.getUsername() + " (" + currentUser.getRole() + ")");
         userBanner.setFont(Font.font("Segoe UI", FontWeight.SEMI_BOLD, 14));
-        userBanner.setFill(Color.web("#dce0ff"));
+        userBanner.getStyleClass().add("section-subheading");
 
         Button addButton = new Button("New Employee");
-        addButton.setStyle("-fx-background-color: #5865f2; -fx-text-fill: white; -fx-font-weight: 600;");
+        addButton.getStyleClass().add("primary-button");
         addButton.setOnAction(e -> addEmployee());
 
         Button exportButton = new Button("Export CSV");
-        exportButton.setStyle("-fx-background-color: #1abc9c; -fx-text-fill: white; -fx-font-weight: 600;");
+        exportButton.getStyleClass().add("secondary-button");
         exportButton.setOnAction(e -> exportUsers());
 
         Button clearSettings = new Button("Clear Settings");
-        clearSettings.setStyle("-fx-background-color: #f04747; -fx-text-fill: white; -fx-font-weight: 600;");
+        clearSettings.getStyleClass().add("danger-button");
         clearSettings.setOnAction(e -> {
             settingsStore.clear();
             info("Settings cleared", "Settings JSON has been reset.");
@@ -296,42 +298,43 @@ public class DashboardView {
         patientTable = createDetailedPatientTable();
 
         Button addButton = new Button("New Patient");
-        addButton.setStyle("-fx-background-color: #57f287; -fx-text-fill: #050c18; -fx-font-weight: 600;");
+        addButton.getStyleClass().add("success-button");
         addButton.setOnAction(e -> addPatientRecord());
 
         Button editButton = new Button("Edit Patient");
         editButton.setOnAction(e -> editPatientRecord());
-        editButton.setStyle("-fx-background-color: #5865f2; -fx-text-fill: white; -fx-font-weight: 600;");
+        editButton.getStyleClass().add("primary-button");
 
         Button changeRoom = new Button("Change Room");
         changeRoom.setOnAction(e -> changePatientRoom());
-        changeRoom.setStyle("-fx-background-color: #f3ba4d; -fx-text-fill: #050c18; -fx-font-weight: 600;");
+        changeRoom.getStyleClass().add("warning-button");
 
         Button deleteButton = new Button("Discharge");
         deleteButton.setOnAction(e -> removePatientRecord());
-        deleteButton.setStyle("-fx-background-color: #f04747; -fx-text-fill: white; -fx-font-weight: 600;");
+        deleteButton.getStyleClass().add("danger-button");
 
         Button exportButton = new Button("Export Patients");
         exportButton.setOnAction(e -> exportPatientRecords());
-        exportButton.setStyle("-fx-background-color: #1abc9c; -fx-text-fill: white; -fx-font-weight: 600;");
+        exportButton.getStyleClass().add("secondary-button");
 
         HBox actions = new HBox(10, addButton, editButton, changeRoom, deleteButton, exportButton);
         actions.setAlignment(Pos.CENTER_LEFT);
 
         Text heading = new Text("Patient Dashboard");
         heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
-        heading.setFill(Color.web("#f5f7ff"));
+        heading.getStyleClass().add("section-heading");
 
         VBox layout = new VBox(16, heading, patientTable, actions);
         layout.setPadding(new Insets(10, 0, 0, 10));
         layout.setAlignment(Pos.TOP_LEFT);
+        VBox.setVgrow(patientTable, Priority.ALWAYS);
         return layout;
     }
 
     private Node buildInventoryView() {
         Text heading = new Text("Inventory Control");
         heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
-        heading.setFill(Color.web("#f5f7ff"));
+        heading.getStyleClass().add("section-heading");
 
         RoundedPane inventoryPanel = createPanel("Inventory Snapshot", buildInventoryList());
         VBox view = new VBox(16, heading, inventoryPanel);
@@ -343,7 +346,7 @@ public class DashboardView {
     private Node buildStatusView() {
         Text heading = new Text("Live Status Feed");
         heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
-        heading.setFill(Color.web("#f5f7ff"));
+        heading.getStyleClass().add("section-heading");
 
         RoundedPane statusPanel = createPanel("Status Feed", buildStatusList());
         VBox view = new VBox(16, heading, statusPanel);
@@ -355,11 +358,11 @@ public class DashboardView {
     private Node buildReportsView() {
         Text heading = new Text("Reports Center");
         heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
-        heading.setFill(Color.web("#f5f7ff"));
+        heading.getStyleClass().add("section-heading");
 
         Label label = new Label("Generate usage, inventory, and patient reports here. Export buttons reuse the patient and user exporters.");
         label.setWrapText(true);
-        label.setTextFill(Color.web("#cfd6ff"));
+        label.getStyleClass().add("muted-text");
 
         VBox view = new VBox(14, heading, label);
         view.setPadding(new Insets(10, 0, 0, 10));
@@ -370,10 +373,10 @@ public class DashboardView {
     private Node buildSettingsView() {
         Text heading = new Text("Settings & Utilities");
         heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
-        heading.setFill(Color.web("#f5f7ff"));
+        heading.getStyleClass().add("section-heading");
 
         Button clearSettingsButton = new Button("Clear Saved Settings");
-        clearSettingsButton.setStyle("-fx-background-color: #f04747; -fx-text-fill: white; -fx-font-weight: 600;");
+        clearSettingsButton.getStyleClass().add("danger-button");
         clearSettingsButton.setOnAction(e -> {
             settingsStore.clear();
             info("Settings cleared", "Settings JSON has been reset.");
@@ -388,11 +391,11 @@ public class DashboardView {
     private RoundedPane buildNavPanel() {
         Text brand = new Text("Clinic Club");
         brand.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
-        brand.setFill(Color.web("#f5f7ff"));
+        brand.getStyleClass().add("section-heading");
 
         Text tagline = new Text("Operations - Inventory - Patients");
         tagline.setFont(Font.font("Segoe UI", 11));
-        tagline.setFill(Color.web("#8f96ba"));
+        tagline.getStyleClass().add("section-subheading");
 
         Separator separator = new Separator();
 
@@ -411,7 +414,7 @@ public class DashboardView {
         navContent.setSpacing(14);
 
         navSectionLabel.setFont(Font.font("Segoe UI", FontWeight.SEMI_BOLD, 12));
-        navSectionLabel.setFill(Color.web("#9aa4d3"));
+        navSectionLabel.getStyleClass().add("section-subheading");
         navContent.getChildren().add(navSectionLabel);
 
         RoundedPane nav = new RoundedPane(26, Color.web("#16181f"));
@@ -427,7 +430,7 @@ public class DashboardView {
         badge.setAlignment(Pos.CENTER_LEFT);
         Region dot = new Region();
         dot.setPrefSize(10, 10);
-        dot.setStyle("-fx-background-color: #57F287; -fx-background-radius: 5;");
+        dot.getStyleClass().add("status-dot");
         Text status = new Text("Operational");
         status.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12));
         status.setFill(Color.web("#cfd6ff"));
@@ -438,20 +441,10 @@ public class DashboardView {
     private Button createNavButton(String id, String label) {
         Button button = new Button(label);
         button.setId(id);
-        button.setStyle(NAV_BUTTON_STYLE);
+        button.getStyleClass().add("nav-button");
         button.setOnAction(e -> {
             activateNav(button, label);
             navigateTo(id);
-        });
-        button.setOnMouseEntered(e -> {
-            if (button != activeNavButton) {
-                button.setStyle(NAV_BUTTON_HOVER);
-            }
-        });
-        button.setOnMouseExited(e -> {
-            if (button != activeNavButton) {
-                button.setStyle(NAV_BUTTON_STYLE);
-            }
         });
         button.setAlignment(Pos.CENTER_LEFT);
         return button;
@@ -471,10 +464,12 @@ public class DashboardView {
 
     private void activateNav(Button button, String label) {
         if (activeNavButton != null) {
-            activeNavButton.setStyle(NAV_BUTTON_STYLE);
+            activeNavButton.getStyleClass().remove("active");
         }
         activeNavButton = button;
-        activeNavButton.setStyle(NAV_BUTTON_ACTIVE);
+        if (!activeNavButton.getStyleClass().contains("active")) {
+            activeNavButton.getStyleClass().add("active");
+        }
         navSectionLabel.setText("Section: " + label);
     }
 
@@ -668,7 +663,7 @@ public class DashboardView {
     private RoundedPane createPanel(String title, Node content) {
         Text label = new Text(title);
         label.setFont(Font.font("Segoe UI", FontWeight.SEMI_BOLD, 16));
-        label.setFill(Color.web("#ced4ff"));
+        label.getStyleClass().add("panel-title");
 
         VBox container = new VBox(10, label, content);
         container.setAlignment(Pos.TOP_LEFT);
@@ -782,5 +777,12 @@ public class DashboardView {
         alert.setTitle(title);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+
+    private void applyStyles(Scene scene) {
+        var css = getClass().getResource("/styles/app.css");
+        if (css != null) {
+            scene.getStylesheets().add(css.toExternalForm());
+        }
     }
 }

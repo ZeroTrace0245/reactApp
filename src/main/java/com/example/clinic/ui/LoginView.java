@@ -12,6 +12,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -42,64 +43,73 @@ public class LoginView {
 
     public void start(Stage stage) {
         stage.setTitle("Clinic Manager Login");
-        stage.setScene(new Scene(createContent(stage), 480, 360));
+        Scene scene = new Scene(createContent(stage), 480, 360);
+        applyStyles(scene);
+        stage.setScene(scene);
         stage.show();
     }
 
     private Parent createContent(Stage stage) {
         HBox root = new HBox(18);
         root.setPadding(new Insets(20));
-        root.setStyle("-fx-background-color: radial-gradient(center 30% 20%, radius 80%, #5b69f5, #151618 60%);");
+        root.getStyleClass().add("login-root");
 
         VBox serverBar = new VBox(14);
         serverBar.setAlignment(Pos.TOP_CENTER);
         serverBar.setPadding(new Insets(16));
         serverBar.setPrefWidth(90);
-        serverBar.setStyle("-fx-background-color: #2d3138; -fx-background-radius: 18;");
+        serverBar.getStyleClass().add("server-bar");
         for (String icon : new String[]{"C", "P", "S", "I"}) {
             Label circle = new Label(icon);
-            circle.setStyle("-fx-background-color: #5865f2; -fx-text-fill: white; -fx-font-weight: 700; -fx-padding: 6 0; -fx-alignment: center; -fx-background-radius: 16; -fx-pref-width: 48;");
+            circle.getStyleClass().add("server-pill");
             serverBar.getChildren().add(circle);
         }
 
         RoundedPane card = new RoundedPane(26, Color.web("#23252a"));
-        card.setMaxWidth(420);
+        card.setMaxWidth(Double.MAX_VALUE);
+        card.getStyleClass().add("card-surface");
 
         VBox cardContent = new VBox(16);
         cardContent.setAlignment(Pos.CENTER_LEFT);
         Text heading = new Text("Clinic Manager");
         heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 30));
-        heading.setFill(Color.WHITE);
+        heading.getStyleClass().add("heading-text");
         Text subText = new Text("Custom clinic control hub");
-        subText.setFill(Color.web("#9ba4c0"));
+        subText.getStyleClass().add("subheading-text");
         subText.setFont(Font.font(14));
 
         VBox form = new VBox(12);
         form.setAlignment(Pos.CENTER_LEFT);
+        form.setFillWidth(true);
 
         Label userLabel = new Label("Username");
-        userLabel.setTextFill(Color.web("#b9c2d5"));
+        userLabel.getStyleClass().add("muted-label");
         TextField usernameField = new TextField();
         usernameField.setPromptText("Enter username");
         usernameField.setText(settingsStore.getLastUsername().orElse(""));
+        usernameField.getStyleClass().add("input-field");
+        usernameField.setMaxWidth(Double.MAX_VALUE);
 
         Label passwordLabel = new Label("Password");
-        passwordLabel.setTextFill(Color.web("#b9c2d5"));
+        passwordLabel.getStyleClass().add("muted-label");
         PasswordField passwordField = new PasswordField();
         passwordField.setPromptText("Enter password");
+        passwordField.getStyleClass().add("input-field");
+        passwordField.setMaxWidth(Double.MAX_VALUE);
 
         Label statusLabel = new Label();
-        statusLabel.setTextFill(Color.web("#f2b134"));
+        statusLabel.getStyleClass().add("status-warning");
 
         Button loginButton = new Button("Connect");
         loginButton.setDefaultButton(true);
-        loginButton.setStyle("-fx-background-color: #5865f2; -fx-text-fill: white; -fx-font-weight: 700; -fx-pref-height: 42px; -fx-pref-width: 100%;");
+        loginButton.getStyleClass().add("primary-button");
+        loginButton.setMaxWidth(Double.MAX_VALUE);
         loginButton.setOnAction(event -> handleLogin(stage, usernameField, passwordField, statusLabel));
 
         VBox fallback = new VBox(6);
         fallback.setPadding(new Insets(12, 0, 0, 0));
         Label fallbackLabel = new Label("Demo credentials: ADMIN/Admin1234, DOCTOR/Doctor1234, NURSE/Nurse1234");
-        fallbackLabel.setTextFill(Color.web("#a7b4df"));
+        fallbackLabel.getStyleClass().add("muted-text");
         fallbackLabel.setWrapText(true);
         fallback.getChildren().add(fallbackLabel);
 
@@ -108,6 +118,7 @@ public class LoginView {
         card.getChildren().add(cardContent);
 
         root.getChildren().addAll(serverBar, card);
+        HBox.setHgrow(card, Priority.ALWAYS);
         return root;
     }
 
@@ -139,5 +150,12 @@ public class LoginView {
             return Optional.of(AppUser.withPassword(username.toUpperCase(), "Demo", password));
         }
         return Optional.empty();
+    }
+
+    private void applyStyles(Scene scene) {
+        var css = getClass().getResource("/styles/app.css");
+        if (css != null) {
+            scene.getStylesheets().add(css.toExternalForm());
+        }
     }
 }

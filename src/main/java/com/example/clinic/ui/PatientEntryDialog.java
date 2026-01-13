@@ -10,7 +10,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -33,22 +32,25 @@ public final class PatientEntryDialog {
 
         Text header = new Text(dialog.getTitle());
         header.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
-        header.setFill(Color.web("#f4f7ff"));
+        header.getStyleClass().add("section-heading");
 
         Label nameLabel = new Label("Full Name");
-        nameLabel.setTextFill(Color.web("#9ba4c0"));
+        nameLabel.getStyleClass().add("muted-label");
         TextField nameField = new TextField();
         nameField.setPromptText("Patient name");
+        nameField.getStyleClass().add("input-field");
 
         Label statusLabel = new Label("Status");
-        statusLabel.setTextFill(Color.web("#9ba4c0"));
+        statusLabel.getStyleClass().add("muted-label");
         TextField statusField = new TextField();
         statusField.setPromptText("Current status");
+        statusField.getStyleClass().add("input-field");
 
         Label roomLabel = new Label("Room");
-        roomLabel.setTextFill(Color.web("#9ba4c0"));
+        roomLabel.getStyleClass().add("muted-label");
         TextField roomField = new TextField();
         roomField.setPromptText("Room number");
+        roomField.getStyleClass().add("input-field");
 
         if (existing != null) {
             nameField.setText(existing.getName());
@@ -58,10 +60,12 @@ public final class PatientEntryDialog {
 
         Button cancel = new Button("Cancel");
         cancel.setOnAction(e -> dialog.close());
-        cancel.setStyle("-fx-background-color: transparent; -fx-text-fill: #f5f7ff; -fx-border-color: #2d3646; -fx-border-radius: 6; -fx-pref-width: 110;");
+        cancel.getStyleClass().add("ghost-button");
+        cancel.setPrefWidth(110);
 
         Button submit = new Button("Save");
-        submit.setStyle("-fx-background-color: #5865f2; -fx-text-fill: white; -fx-font-weight: 600; -fx-pref-width: 110;");
+        submit.getStyleClass().add("primary-button");
+        submit.setPrefWidth(110);
 
         AtomicReference<PatientRecord> result = new AtomicReference<>();
         submit.setOnAction(e -> {
@@ -91,11 +95,20 @@ public final class PatientEntryDialog {
         VBox root = new VBox(14, header, form, actions);
         root.setPadding(new Insets(20));
         root.setSpacing(6);
-        root.setStyle("-fx-background-color: #11141f; -fx-border-radius: 20; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.65), 12, 0, 0, 4);");
+        root.getStyleClass().add("dialog-root");
         VBox.setVgrow(form, Priority.ALWAYS);
 
-        dialog.setScene(new Scene(root, 360, 340));
+        Scene scene = new Scene(root, 360, 340);
+        applyStyles(scene);
+        dialog.setScene(scene);
         dialog.showAndWait();
         return Optional.ofNullable(result.get());
+    }
+
+    private static void applyStyles(Scene scene) {
+        var css = PatientEntryDialog.class.getResource("/styles/app.css");
+        if (css != null) {
+            scene.getStylesheets().add(css.toExternalForm());
+        }
     }
 }
