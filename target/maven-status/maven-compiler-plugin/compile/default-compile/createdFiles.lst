@@ -13,5 +13,4 @@ com\example\clinic\ui\PatientEntryDialog.class
 com\example\clinic\ui\LoginView.class
 com\example\clinic\ui\PromptDialog.class
 com\example\clinic\util\CsvExporter.class
-com\example\clinic\ui\DashboardView$KeyMetric.class
 com\example\clinic\ui\DashboardView$2.class
