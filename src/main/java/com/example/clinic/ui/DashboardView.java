@@ -8,13 +8,12 @@ import com.example.clinic.settings.SettingsStore;
 import com.example.clinic.ui.PatientEntryDialog;
 import com.example.clinic.util.CsvExporter;
 import javafx.animation.KeyFrame;
+import javafx.animation.FadeTransition;
 import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
-import javafx.geometry.HPos;
 import javafx.geometry.Pos;
-import javafx.geometry.VPos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -23,12 +22,11 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.Separator;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -38,7 +36,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
-import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -47,10 +44,8 @@ import java.nio.file.Path;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 public class DashboardView {
     private final UserRepository repository;
@@ -65,97 +60,18 @@ public class DashboardView {
     private final Text staffOnDutyValue = new Text();
 
     private final StackPane mainArea = new StackPane();
+    private Button activeNavButton;
     private AppUser loggedIn;
     private Stage primaryStage;
     private TableView<PatientRecord> patientTable;
-    private static final List<KeyMetric> OVERVIEW_METRICS = List.of(
-            new KeyMetric("Patients", 0.6, "", Color.web("#57F287")),
-            new KeyMetric("Inventory", 0.4, "", Color.web("#1abc9c")),
-            new KeyMetric("Outstanding", 0.9, "$625.00", Color.web("#f04747")),
-            new KeyMetric("Monthly Revenue", 0.55, "$340.00", Color.web("#f3ba4d")),
-            new KeyMetric("Open Complaints", 0.2, "", Color.web("#a66df6"))
-        );
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
     private final Random random = new Random();
     private final Timeline realtimeTimeline = createRealtimeTimeline();
-    private final Text navSectionLabel = new Text("Section: Dashboard");
-    private Button activeNavButton;
 
     public DashboardView(UserRepository repository, SettingsStore settingsStore) {
         this.repository = repository;
         this.settingsStore = settingsStore;
         initializeSampleData();
-    }
-
-    private Region createValueCard(String title, String value, String accent) {
-        Text label = new Text(title);
-        label.setFill(Color.web("#9ba4c0"));
-        label.setFont(Font.font("Segoe UI", 12));
-
-        Text amount = new Text(value);
-        amount.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
-        amount.setFill(Color.web("#f5f7ff"));
-
-        VBox content = new VBox(6, label, amount);
-        content.setAlignment(Pos.CENTER_LEFT);
-
-        Region accentStrip = new Region();
-        accentStrip.setPrefHeight(4);
-        accentStrip.setStyle("-fx-background-color: " + accent + "; -fx-background-radius: 4; -fx-min-width: 100%;");
-
-        VBox combined = new VBox(10, content, accentStrip);
-        combined.setPadding(new Insets(10));
-
-        RoundedPane card = new RoundedPane(16, Color.web("#1c2029"));
-        card.getChildren().setAll(combined);
-        card.setStyle(card.getStyle() + " -fx-background-color: #181b21; -fx-pref-width: 170;");
-        return card;
-    }
-
-    private Node buildMetricBars() {
-        VBox list = new VBox(12);
-        for (KeyMetric metric : OVERVIEW_METRICS) {
-            list.getChildren().add(createMetricBar(metric));
-        }
-        return list;
-    }
-
-    private Node createMetricBar(KeyMetric metric) {
-        HBox row = new HBox(12);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(4));
-        Text label = new Text(metric.label());
-        label.setFill(Color.web("#ced4ff"));
-        label.setFont(Font.font("Segoe UI", 12));
-
-        StackPane track = new StackPane();
-        track.setPrefHeight(26);
-        track.setStyle("-fx-background-color: #151624; -fx-background-radius: 14; -fx-border-radius: 14;");
-
-        Region progress = new Region();
-        progress.setStyle("-fx-background-color: " + toHex(metric.accent()) + "; -fx-background-radius: 14;");
-        progress.prefWidthProperty().bind(track.widthProperty().multiply(Math.min(metric.ratio(), 1.0)));
-
-        track.getChildren().add(progress);
-        HBox.setHgrow(track, Priority.ALWAYS);
-        row.getChildren().addAll(label, track);
-
-        if (!metric.value().isEmpty()) {
-            Text value = new Text(metric.value());
-            value.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12));
-            value.setFill(Color.web("#ced4ff"));
-            row.getChildren().add(value);
-        }
-        return row;
-    }
-
-    private String toHex(Color color) {
-        return String.format("#%02x%02x%02x",
-                (int) (color.getRed() * 255),
-                (int) (color.getGreen() * 255),
-                (int) (color.getBlue() * 255));
-    }
-    private record KeyMetric(String label, double ratio, String value, Color accent) {
     }
 
     private void initializeSampleData() {
@@ -186,7 +102,7 @@ public class DashboardView {
     }
 
     public void start(Stage stage, AppUser currentUser) {
-        stage.setTitle("Clinic Manager Dashboard");
+        stage.setTitle("Clinic Manager");
         stage.setFullScreenExitHint("Press ESC to exit full screen");
 
         BorderPane root = new BorderPane();
@@ -195,13 +111,23 @@ public class DashboardView {
 
         loggedIn = currentUser;
         primaryStage = stage;
-        RoundedPane navPad = buildNavPanel();
-        root.setLeft(navPad);
-        root.setCenter(mainArea);
-        root.setRight(createStatusPanel());
 
-        mainArea.prefHeightProperty().bind(root.heightProperty().subtract(32));
-        mainArea.prefWidthProperty().bind(root.widthProperty().subtract(navPad.widthProperty()).subtract(32));
+        VBox mainContent = new VBox(18);
+        mainContent.setPadding(new Insets(4, 6, 20, 6));
+        mainContent.getChildren().addAll(
+                buildHeroSection(),
+                buildNavBar(),
+                mainArea
+        );
+        VBox.setVgrow(mainArea, Priority.ALWAYS);
+
+        navigateTo("overview");
+
+        ScrollPane scrollPane = new ScrollPane(mainContent);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setStyle("-fx-background: transparent; -fx-background-color: transparent;");
+
+        root.setCenter(scrollPane);
 
         refreshUsers();
 
@@ -210,71 +136,85 @@ public class DashboardView {
         stage.setScene(scene);
         stage.setMaximized(true);
         stage.setResizable(true);
-        stage.setFullScreen(false);
         realtimeTimeline.play();
         stage.setOnCloseRequest(event -> realtimeTimeline.stop());
         stage.show();
     }
 
-    private VBox buildOverviewView(AppUser currentUser) {
-        Text title = new Text("Green Grid - Utilities Dashboard");
-        title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 26));
+    private HBox buildNavBar() {
+        Button overviewBtn = createNavButton("overview", "Overview");
+        Button patientsBtn = createNavButton("patients", "Patients");
+        Button inventoryBtn = createNavButton("inventory", "Inventory");
+        Button statusBtn = createNavButton("status", "Status");
+        Button reportsBtn = createNavButton("reports", "Reports");
+        Button settingsBtn = createNavButton("settings", "Settings");
+
+        HBox nav = new HBox(10, overviewBtn, patientsBtn, inventoryBtn, statusBtn, reportsBtn, settingsBtn);
+        nav.setAlignment(Pos.CENTER_LEFT);
+        activateNav(overviewBtn);
+        return nav;
+    }
+
+    private Button createNavButton(String id, String label) {
+        Button button = new Button(label);
+        button.setId(id);
+        button.getStyleClass().add("nav-button");
+        button.setOnAction(e -> {
+            activateNav(button);
+            navigateTo(id);
+        });
+        return button;
+    }
+
+    private void activateNav(Button button) {
+        if (activeNavButton != null) {
+            activeNavButton.getStyleClass().remove("active");
+        }
+        activeNavButton = button;
+        if (!activeNavButton.getStyleClass().contains("active")) {
+            activeNavButton.getStyleClass().add("active");
+        }
+    }
+
+    private void navigateTo(String id) {
+        Node target = switch (id) {
+            case "patients" -> buildPatientsView();
+            case "inventory" -> buildInventoryView();
+            case "status" -> buildStatusView();
+            case "reports" -> buildReportsView();
+            case "settings" -> buildSettingsView();
+            default -> buildOverviewView();
+        };
+        mainArea.getChildren().setAll(target);
+        FadeTransition fade = new FadeTransition(Duration.millis(250), target);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+        fade.play();
+    }
+
+    private RoundedPane buildHeroSection() {
+        Text title = new Text("Clinic Control Center");
+        title.setFont(Font.font("Segoe UI", FontWeight.BOLD, 28));
         title.getStyleClass().add("section-heading");
 
-        Text subtitle = new Text("An eco-minded clinic overview with patient, inventory, and operational insights.");
+        Text subtitle = new Text("Unified patients, inventory, and staff overview in one clean view.");
         subtitle.setFont(Font.font("Segoe UI", 13));
         subtitle.getStyleClass().add("section-subheading");
 
-        FlowPane statsRow = new FlowPane(12, 12,
-                createValueCard("Total Patients", String.valueOf(patients.size()), "#57F287"),
-                createValueCard("Beds Available", "24", "#1abc9c"),
-                createValueCard("Critical Alerts", "2", "#f04747"),
-                createValueCard("Open Complaints", "4", "#f3ba4d")
-        );
-        statsRow.setColumnHalignment(HPos.LEFT);
-        statsRow.setRowValignment(VPos.CENTER);
-        statsRow.setPrefWrapLength(680);
-        statsRow.setMaxWidth(Double.MAX_VALUE);
-
-        RoundedPane metricsPanel = createPanel("Key metrics", buildMetricBars());
-        VBox.setVgrow(metricsPanel, Priority.NEVER);
-
-        HBox header = buildHeader(currentUser);
-
-        RoundedPane categoryPanel = createPanel("Patient Categories", buildPatientCategoryList());
-        VBox.setVgrow(categoryPanel, Priority.NEVER);
-
-        VBox center = new VBox(16, title, subtitle, statsRow, metricsPanel, header, categoryPanel);
-        center.setAlignment(Pos.TOP_LEFT);
-        center.setPadding(new Insets(0, 0, 0, 10));
-        return center;
-    }
-
-    private TableView<PatientRecord> buildPatientSummaryTable() {
-        TableView<PatientRecord> summaryTable = new TableView<>(patients);
-        summaryTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-        TableColumn<PatientRecord, String> nameColumn = new TableColumn<>("Patient");
-        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
-        TableColumn<PatientRecord, String> statusColumn = new TableColumn<>("Status");
-        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
-        summaryTable.getColumns().setAll(nameColumn, statusColumn);
-        summaryTable.setPrefHeight(200);
-        summaryTable.setPlaceholder(new Label("No patient records yet"));
-        return summaryTable;
-    }
-
-    private HBox buildHeader(AppUser currentUser) {
-        Text userBanner = new Text("Signed in as " + currentUser.getUsername() + " (" + currentUser.getRole() + ")");
-        userBanner.setFont(Font.font("Segoe UI", FontWeight.SEMI_BOLD, 14));
+        Text userBanner = new Text("Signed in as " + loggedIn.getUsername() + " (" + loggedIn.getRole() + ")");
+        userBanner.setFont(Font.font("Segoe UI", FontWeight.SEMI_BOLD, 13));
         userBanner.getStyleClass().add("section-subheading");
 
-        Button addButton = new Button("New Employee");
-        addButton.getStyleClass().add("primary-button");
-        addButton.setOnAction(e -> addEmployee());
+        HBox actions = new HBox(10);
+        actions.setAlignment(Pos.CENTER_RIGHT);
 
-        Button exportButton = new Button("Export CSV");
-        exportButton.getStyleClass().add("secondary-button");
-        exportButton.setOnAction(e -> exportUsers());
+        Button addEmployee = new Button("New Employee");
+        addEmployee.getStyleClass().add("primary-button");
+        addEmployee.setOnAction(e -> addEmployee());
+
+        Button exportUsers = new Button("Export Users");
+        exportUsers.getStyleClass().add("secondary-button");
+        exportUsers.setOnAction(e -> exportUsers());
 
         Button clearSettings = new Button("Clear Settings");
         clearSettings.getStyleClass().add("danger-button");
@@ -283,15 +223,61 @@ public class DashboardView {
             info("Settings cleared", "Settings JSON has been reset.");
         });
 
-        HBox actions = new HBox(10, addButton, exportButton, clearSettings);
-        actions.setAlignment(Pos.CENTER_RIGHT);
+        actions.getChildren().addAll(addEmployee, exportUsers, clearSettings);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox header = new HBox(12, userBanner, spacer, actions);
+        HBox header = new HBox(12, title, spacer, actions);
         header.setAlignment(Pos.CENTER_LEFT);
-        return header;
+
+        VBox container = new VBox(10, header, subtitle, userBanner);
+        container.setAlignment(Pos.TOP_LEFT);
+
+        RoundedPane pane = new RoundedPane(22, Color.web("#16181f"));
+        pane.getChildren().setAll(container);
+        pane.getStyleClass().add("hero-pane");
+        return pane;
+    }
+
+    private Node buildStatsRow() {
+        HBox row = new HBox(14);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getChildren().addAll(
+                createStatCard("Active Patients", activePatientsValue, "#57F287"),
+                createStatCard("Low Inventory", lowInventoryValue, "#f3ba4d"),
+                createStatCard("Staff On Duty", staffOnDutyValue, "#5865f2")
+        );
+        return row;
+    }
+
+    private Node buildOverviewView() {
+        VBox view = new VBox(16,
+                buildStatsRow(),
+                buildContentGrid()
+        );
+        view.setAlignment(Pos.TOP_LEFT);
+        return view;
+    }
+
+    private Node buildContentGrid() {
+        VBox leftColumn = new VBox(14,
+                buildPatientsView(),
+                buildStatusView()
+        );
+
+        VBox rightColumn = new VBox(14,
+                buildInventoryView(),
+                buildReportsView(),
+                buildSettingsView()
+        );
+
+        HBox grid = new HBox(14, leftColumn, rightColumn);
+        HBox.setHgrow(leftColumn, Priority.ALWAYS);
+        HBox.setHgrow(rightColumn, Priority.SOMETIMES);
+        leftColumn.setPrefWidth(720);
+        rightColumn.setPrefWidth(420);
+        return grid;
     }
 
     private Node buildPatientsView() {
@@ -324,11 +310,10 @@ public class DashboardView {
         heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
         heading.getStyleClass().add("section-heading");
 
-        VBox layout = new VBox(16, heading, patientTable, actions);
-        layout.setPadding(new Insets(10, 0, 0, 10));
+        VBox layout = new VBox(12, heading, patientTable, actions);
         layout.setAlignment(Pos.TOP_LEFT);
         VBox.setVgrow(patientTable, Priority.ALWAYS);
-        return layout;
+        return createSectionCard(layout);
     }
 
     private Node buildInventoryView() {
@@ -336,11 +321,9 @@ public class DashboardView {
         heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
         heading.getStyleClass().add("section-heading");
 
-        RoundedPane inventoryPanel = createPanel("Inventory Snapshot", buildInventoryList());
-        VBox view = new VBox(16, heading, inventoryPanel);
-        view.setPadding(new Insets(10, 0, 0, 10));
+        VBox view = new VBox(12, heading, buildInventoryList());
         view.setAlignment(Pos.TOP_LEFT);
-        return view;
+        return createSectionCard(view);
     }
 
     private Node buildStatusView() {
@@ -348,11 +331,9 @@ public class DashboardView {
         heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
         heading.getStyleClass().add("section-heading");
 
-        RoundedPane statusPanel = createPanel("Status Feed", buildStatusList());
-        VBox view = new VBox(16, heading, statusPanel);
-        view.setPadding(new Insets(10, 0, 0, 10));
+        VBox view = new VBox(12, heading, buildStatusList());
         view.setAlignment(Pos.TOP_LEFT);
-        return view;
+        return createSectionCard(view);
     }
 
     private Node buildReportsView() {
@@ -364,10 +345,23 @@ public class DashboardView {
         label.setWrapText(true);
         label.getStyleClass().add("muted-text");
 
-        VBox view = new VBox(14, heading, label);
-        view.setPadding(new Insets(10, 0, 0, 10));
+        Button generateButton = new Button("Generate Reports");
+        generateButton.getStyleClass().add("primary-button");
+        generateButton.setOnAction(e -> generateReports());
+
+        VBox view = new VBox(10, heading, label, generateButton);
         view.setAlignment(Pos.TOP_LEFT);
-        return view;
+        return createSectionCard(view);
+    }
+
+    private void generateReports() {
+        try {
+            Path patientsPath = CsvExporter.exportPatients(patients);
+            Path usersPath = CsvExporter.exportUsers(repository.findAll());
+            info("Reports generated", "Patients: " + patientsPath.toAbsolutePath() + "\nUsers: " + usersPath.toAbsolutePath());
+        } catch (IOException e) {
+            error("Reports failed", "Unable to generate reports: " + e.getMessage());
+        }
     }
 
     private Node buildSettingsView() {
@@ -382,95 +376,9 @@ public class DashboardView {
             info("Settings cleared", "Settings JSON has been reset.");
         });
 
-        VBox view = new VBox(16, heading, clearSettingsButton);
-        view.setPadding(new Insets(10, 0, 0, 10));
+        VBox view = new VBox(12, heading, clearSettingsButton);
         view.setAlignment(Pos.TOP_LEFT);
-        return view;
-    }
-
-    private RoundedPane buildNavPanel() {
-        Text brand = new Text("Clinic Club");
-        brand.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
-        brand.getStyleClass().add("section-heading");
-
-        Text tagline = new Text("Operations - Inventory - Patients");
-        tagline.setFont(Font.font("Segoe UI", 11));
-        tagline.getStyleClass().add("section-subheading");
-
-        Separator separator = new Separator();
-
-        Button dashboardBtn = createNavButton("dashboard", "Dashboard");
-        Button patientsBtn = createNavButton("patients", "Patients");
-        Button inventoryBtn = createNavButton("inventory", "Inventory");
-        Button statusBtn = createNavButton("status", "Status Feed");
-        Button reportsBtn = createNavButton("reports", "Reports");
-        Button settingsBtn = createNavButton("settings", "Settings");
-
-        VBox navButtons = new VBox(8, dashboardBtn, patientsBtn, inventoryBtn, statusBtn, reportsBtn, settingsBtn);
-        navButtons.setFillWidth(true);
-
-        VBox navContent = new VBox(16, brand, tagline, separator, navButtons, createStatusBadge());
-        navContent.setPadding(new Insets(12));
-        navContent.setSpacing(14);
-
-        navSectionLabel.setFont(Font.font("Segoe UI", FontWeight.SEMI_BOLD, 12));
-        navSectionLabel.getStyleClass().add("section-subheading");
-        navContent.getChildren().add(navSectionLabel);
-
-        RoundedPane nav = new RoundedPane(26, Color.web("#16181f"));
-        nav.getChildren().setAll(navContent);
-        nav.setMaxWidth(220);
-        activateNav(dashboardBtn, "Dashboard");
-        navigateTo("dashboard");
-        return nav;
-    }
-
-    private Node createStatusBadge() {
-        HBox badge = new HBox(6);
-        badge.setAlignment(Pos.CENTER_LEFT);
-        Region dot = new Region();
-        dot.setPrefSize(10, 10);
-        dot.getStyleClass().add("status-dot");
-        Text status = new Text("Operational");
-        status.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12));
-        status.setFill(Color.web("#cfd6ff"));
-        badge.getChildren().addAll(dot, status);
-        return badge;
-    }
-
-    private Button createNavButton(String id, String label) {
-        Button button = new Button(label);
-        button.setId(id);
-        button.getStyleClass().add("nav-button");
-        button.setOnAction(e -> {
-            activateNav(button, label);
-            navigateTo(id);
-        });
-        button.setAlignment(Pos.CENTER_LEFT);
-        return button;
-    }
-
-    private void navigateTo(String id) {
-        Node target = switch (id) {
-            case "patients" -> buildPatientsView();
-            case "inventory" -> buildInventoryView();
-            case "status" -> buildStatusView();
-            case "reports" -> buildReportsView();
-            case "settings" -> buildSettingsView();
-            default -> buildOverviewView(loggedIn);
-        };
-        mainArea.getChildren().setAll(target);
-    }
-
-    private void activateNav(Button button, String label) {
-        if (activeNavButton != null) {
-            activeNavButton.getStyleClass().remove("active");
-        }
-        activeNavButton = button;
-        if (!activeNavButton.getStyleClass().contains("active")) {
-            activeNavButton.getStyleClass().add("active");
-        }
-        navSectionLabel.setText("Section: " + label);
+        return createSectionCard(view);
     }
 
     private TableView<PatientRecord> createDetailedPatientTable() {
@@ -607,40 +515,6 @@ public class DashboardView {
         return inventoryList;
     }
 
-    private Node buildPatientCategoryList() {
-        VBox list = new VBox(6);
-        list.setPadding(new Insets(4));
-        Map<String, Long> categories = categorizePatients();
-        categories.forEach((category, count) -> {
-            Label badge = new Label(category + ": " + count);
-            badge.setTextFill(Color.web("#e1e4ff"));
-            list.getChildren().add(badge);
-        });
-        return list;
-    }
-
-    private Map<String, Long> categorizePatients() {
-        return patients.stream()
-                .collect(Collectors.groupingBy(p -> categorizeStatus(p.getStatus()), Collectors.counting()));
-    }
-
-    private String categorizeStatus(String status) {
-        String normalized = status.toLowerCase();
-        if (normalized.contains("critical")) {
-            return "Critical";
-        }
-        if (normalized.contains("recovery")) {
-            return "Recovery";
-        }
-        if (normalized.contains("observation")) {
-            return "Observation";
-        }
-        if (normalized.contains("pre-op") || normalized.contains("preop")) {
-            return "Pre-op";
-        }
-        return "Stable";
-    }
-
     private ListView<String> buildStatusList() {
         ListView<String> statusList = new ListView<>(statusMessages);
         statusList.setPrefHeight(220);
@@ -654,24 +528,11 @@ public class DashboardView {
         return statusList;
     }
 
-    private RoundedPane createStatusPanel() {
-        RoundedPane panel = createPanel("Status Feed", buildStatusList());
-        panel.setMaxWidth(250);
-        return panel;
-    }
-
-    private RoundedPane createPanel(String title, Node content) {
-        Text label = new Text(title);
-        label.setFont(Font.font("Segoe UI", FontWeight.SEMI_BOLD, 16));
-        label.getStyleClass().add("panel-title");
-
-        VBox container = new VBox(10, label, content);
-        container.setAlignment(Pos.TOP_LEFT);
-        container.setFillWidth(true);
-
-        RoundedPane pane = new RoundedPane(20, Color.web("#1c2029"));
-        pane.getChildren().setAll(container);
-        return pane;
+    private RoundedPane createSectionCard(Node content) {
+        RoundedPane card = new RoundedPane(20, Color.web("#1c2029"));
+        card.getChildren().setAll(content);
+        card.getStyleClass().add("content-card");
+        return card;
     }
 
     private RoundedPane createStatCard(String title, Text value, String accentColor) {
@@ -693,6 +554,7 @@ public class DashboardView {
         RoundedPane card = new RoundedPane(18, Color.web("#1a1d26"));
         card.getChildren().setAll(cardContent);
         card.setPrefWidth(200);
+        card.getStyleClass().add("stat-card");
         return card;
     }
 

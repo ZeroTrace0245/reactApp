@@ -1,13 +1,13 @@
-E:\MS VS insider\java\src\main\java\com\example\clinic\ui\PatientEntryDialog.java
-E:\MS VS insider\java\src\main\java\com\example\clinic\ui\LoginView.java
-E:\MS VS insider\java\src\main\java\com\example\clinic\settings\SettingsStore.java
-E:\MS VS insider\java\src\main\java\com\example\clinic\ui\PromptDialog.java
-E:\MS VS insider\java\src\main\java\com\example\clinic\model\InventoryItem.java
-E:\MS VS insider\java\src\main\java\com\example\clinic\service\AuthService.java
-E:\MS VS insider\java\src\main\java\com\example\clinic\ui\RoundedPane.java
-E:\MS VS insider\java\src\main\java\com\example\clinic\model\AppUser.java
-E:\MS VS insider\java\src\main\java\com\example\clinic\util\CsvExporter.java
-E:\MS VS insider\java\src\main\java\com\example\clinic\ui\DashboardView.java
-E:\MS VS insider\java\src\main\java\com\example\clinic\data\UserRepository.java
-E:\MS VS insider\java\src\main\java\com\example\clinic\model\PatientRecord.java
-E:\MS VS insider\java\src\main\java\com\example\clinic\MainApp.java
+C:\clone\Project_Java\src\main\java\com\example\clinic\ui\LoginView.java
+C:\clone\Project_Java\src\main\java\com\example\clinic\util\CsvExporter.java
+C:\clone\Project_Java\src\main\java\com\example\clinic\ui\RoundedPane.java
+C:\clone\Project_Java\src\main\java\com\example\clinic\data\UserRepository.java
+C:\clone\Project_Java\src\main\java\com\example\clinic\model\PatientRecord.java
+C:\clone\Project_Java\src\main\java\com\example\clinic\MainApp.java
+C:\clone\Project_Java\src\main\java\com\example\clinic\model\AppUser.java
+C:\clone\Project_Java\src\main\java\com\example\clinic\settings\SettingsStore.java
+C:\clone\Project_Java\src\main\java\com\example\clinic\ui\DashboardView.java
+C:\clone\Project_Java\src\main\java\com\example\clinic\model\InventoryItem.java
+C:\clone\Project_Java\src\main\java\com\example\clinic\service\AuthService.java
+C:\clone\Project_Java\src\main\java\com\example\clinic\ui\PatientEntryDialog.java
+C:\clone\Project_Java\src\main\java\com\example\clinic\ui\PromptDialog.java
