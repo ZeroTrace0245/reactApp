@@ -43,38 +43,59 @@ public class LoginView {
 
     public void start(Stage stage) {
         stage.setTitle("Clinic Manager Login");
-        Scene scene = new Scene(createContent(stage), 480, 360);
+        Scene scene = new Scene(createContent(stage), 840, 520);
         applyStyles(scene);
         stage.setScene(scene);
         stage.show();
     }
 
     private Parent createContent(Stage stage) {
-        HBox root = new HBox(18);
-        root.setPadding(new Insets(20));
+        HBox root = new HBox(32);
+        root.setPadding(new Insets(32));
+        root.setAlignment(Pos.CENTER);
         root.getStyleClass().add("login-root");
 
-        VBox serverBar = new VBox(14);
-        serverBar.setAlignment(Pos.TOP_CENTER);
-        serverBar.setPadding(new Insets(16));
-        serverBar.setPrefWidth(90);
-        serverBar.getStyleClass().add("server-bar");
-        for (String icon : new String[]{"C", "P", "S", "I"}) {
-            Label circle = new Label(icon);
-            circle.getStyleClass().add("server-pill");
-            serverBar.getChildren().add(circle);
+        VBox hero = new VBox(12);
+        hero.setAlignment(Pos.CENTER_LEFT);
+        Text brand = new Text("Clinic Manager");
+        brand.setFont(Font.font("Segoe UI", FontWeight.BOLD, 32));
+        brand.getStyleClass().add("heading-text");
+        Text tagline = new Text("Secure access to patients, inventory, and staff in one workspace.");
+        tagline.getStyleClass().add("subheading-text");
+        tagline.setWrappingWidth(360);
+
+        HBox tags = new HBox(8);
+        tags.setAlignment(Pos.CENTER_LEFT);
+        for (String label : new String[]{"Patients", "Inventory", "Staff"}) {
+            Label chip = new Label(label);
+            chip.getStyleClass().add("pill-badge");
+            tags.getChildren().add(chip);
         }
 
-        RoundedPane card = new RoundedPane(26, Color.web("#23252a"));
-        card.setMaxWidth(Double.MAX_VALUE);
-        card.getStyleClass().add("card-surface");
+        VBox highlights = new VBox(6);
+        highlights.setAlignment(Pos.CENTER_LEFT);
+        for (String point : new String[]{
+                "Role-based access for admin, doctor, nurse",
+                "Live status feed and low-stock alerts",
+                "One-click CSV exports for audits"
+        }) {
+            Label bullet = new Label("• " + point);
+            bullet.getStyleClass().add("hero-bullet");
+            highlights.getChildren().add(bullet);
+        }
+
+        hero.getChildren().addAll(brand, tagline, tags, highlights);
+
+        RoundedPane card = new RoundedPane(26, Color.web("#161b23"));
+        card.setMaxWidth(420);
+        card.getStyleClass().add("login-card");
 
         VBox cardContent = new VBox(16);
         cardContent.setAlignment(Pos.CENTER_LEFT);
-        Text heading = new Text("Clinic Manager");
-        heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 30));
+        Text heading = new Text("Welcome back");
+        heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 26));
         heading.getStyleClass().add("heading-text");
-        Text subText = new Text("Custom clinic control hub");
+        Text subText = new Text("Sign in to continue");
         subText.getStyleClass().add("subheading-text");
         subText.setFont(Font.font(14));
 
@@ -100,14 +121,14 @@ public class LoginView {
         Label statusLabel = new Label();
         statusLabel.getStyleClass().add("status-warning");
 
-        Button loginButton = new Button("Connect");
+        Button loginButton = new Button("Sign in");
         loginButton.setDefaultButton(true);
         loginButton.getStyleClass().add("primary-button");
         loginButton.setMaxWidth(Double.MAX_VALUE);
         loginButton.setOnAction(event -> handleLogin(stage, usernameField, passwordField, statusLabel));
 
         VBox fallback = new VBox(6);
-        fallback.setPadding(new Insets(12, 0, 0, 0));
+        fallback.setPadding(new Insets(10, 0, 0, 0));
         Label fallbackLabel = new Label("Demo credentials: ADMIN/Admin1234, DOCTOR/Doctor1234, NURSE/Nurse1234");
         fallbackLabel.getStyleClass().add("muted-text");
         fallbackLabel.setWrapText(true);
@@ -117,8 +138,9 @@ public class LoginView {
         cardContent.getChildren().addAll(heading, subText, form);
         card.getChildren().add(cardContent);
 
-        root.getChildren().addAll(serverBar, card);
-        HBox.setHgrow(card, Priority.ALWAYS);
+        root.getChildren().addAll(hero, card);
+        HBox.setHgrow(card, Priority.NEVER);
+        HBox.setHgrow(hero, Priority.ALWAYS);
         return root;
     }
 
