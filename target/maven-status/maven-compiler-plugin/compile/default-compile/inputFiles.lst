@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 C:\clone\Project_Java\src\main\java\com\example\clinic\ui\LoginView.java
 C:\clone\Project_Java\src\main\java\com\example\clinic\util\CsvExporter.java
 C:\clone\Project_Java\src\main\java\com\example\clinic\ui\RoundedPane.java
@@ -11,3 +12,18 @@ C:\clone\Project_Java\src\main\java\com\example\clinic\model\InventoryItem.java
 C:\clone\Project_Java\src\main\java\com\example\clinic\service\AuthService.java
 C:\clone\Project_Java\src\main\java\com\example\clinic\ui\PatientEntryDialog.java
 C:\clone\Project_Java\src\main\java\com\example\clinic\ui\PromptDialog.java
+=======
+D:\Project_Java\src\main\java\com\example\clinic\ui\LoginView.java
+D:\Project_Java\src\main\java\com\example\clinic\model\AppUser.java
+D:\Project_Java\src\main\java\com\example\clinic\ui\DashboardView.java
+D:\Project_Java\src\main\java\com\example\clinic\data\UserRepository.java
+D:\Project_Java\src\main\java\com\example\clinic\model\PatientRecord.java
+D:\Project_Java\src\main\java\com\example\clinic\MainApp.java
+D:\Project_Java\src\main\java\com\example\clinic\ui\PatientEntryDialog.java
+D:\Project_Java\src\main\java\com\example\clinic\settings\SettingsStore.java
+D:\Project_Java\src\main\java\com\example\clinic\ui\RoundedPane.java
+D:\Project_Java\src\main\java\com\example\clinic\service\AuthService.java
+D:\Project_Java\src\main\java\com\example\clinic\model\InventoryItem.java
+D:\Project_Java\src\main\java\com\example\clinic\ui\PromptDialog.java
+D:\Project_Java\src\main\java\com\example\clinic\util\CsvExporter.java
+>>>>>>> Stashed changes
