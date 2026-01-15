@@ -10,6 +10,20 @@ A JavaFX desktop dashboard for small clinics to manage users, patient records, i
 - **Reports**: One-click CSV exports for patients and users.
 - **Settings**: Persist/clear last login info stored in a JSON file.
 
+## Screenshots
+Drop PNGs into `docs/screenshots/` with the names below to have the previews render on GitHub.
+
+| Screen | Preview |
+| --- | --- |
+| Login | ![Login](docs/screenshots/login.png) |
+| Overview dashboard | ![Overview](docs/screenshots/overview.png) |
+| Patients | ![Patients](docs/screenshots/patients.png) |
+| Appointments | ![Appointments](docs/screenshots/appointments.png) |
+| Inventory | ![Inventory](docs/screenshots/inventory.png) |
+| Settings | ![Settings](docs/screenshots/settings.png) |
+| Status feed | ![Status feed](docs/screenshots/status.png) |
+| Reports | ![Reports](docs/screenshots/reports.png) |
+
 ## How it works
 - **Entry point**: `com.example.clinic.MainApp` wires the login view and, on success, opens `DashboardView`.
 - **Users**: Backed by SQLite in `storage/users.db`; schema is auto-created and demo accounts are ensured on startup.
