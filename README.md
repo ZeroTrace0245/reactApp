@@ -15,14 +15,14 @@ Drop PNGs into `docs/screenshots/` with the names below to have the previews ren
 
 | Screen | Preview |
 | --- | --- |
-| Login | ![Login](docs/screenshots/login.png) |
-| Overview dashboard | ![Overview](docs/screenshots/overview.png) |
-| Patients | ![Patients](docs/screenshots/patients.png) |
-| Appointments | ![Appointments](docs/screenshots/appointments.png) |
-| Inventory | ![Inventory](docs/screenshots/inventory.png) |
-| Settings | ![Settings](docs/screenshots/settings.png) |
-| Status feed | ![Status feed](docs/screenshots/status.png) |
-| Reports | ![Reports](docs/screenshots/reports.png) |
+| Login | ![Login](https://github.com/ZeroTrace0245/Project_Java/blob/76f8c4877ee1f0c299c44248e5712f420e446fbe/Doc/login%20page.png) |
+| Overview dashboard | ![Overview](https://github.com/ZeroTrace0245/Project_Java/blob/76f8c4877ee1f0c299c44248e5712f420e446fbe/Doc/Dashboard.gif) |
+| Patients | ![Patients](https://github.com/ZeroTrace0245/Project_Java/blob/76f8c4877ee1f0c299c44248e5712f420e446fbe/Doc/Patients.png) |
+| Appointments | ![Appointments](https://github.com/ZeroTrace0245/Project_Java/blob/76f8c4877ee1f0c299c44248e5712f420e446fbe/Doc/Appointments%20.png) |
+| Inventory | ![Inventory](https://github.com/ZeroTrace0245/Project_Java/blob/76f8c4877ee1f0c299c44248e5712f420e446fbe/Doc/Inventory.png) |
+| Settings | ![Settings](https://github.com/ZeroTrace0245/Project_Java/blob/76f8c4877ee1f0c299c44248e5712f420e446fbe/Doc/Settings.png) |
+| Status feed | ![Status feed](https://github.com/ZeroTrace0245/Project_Java/blob/76f8c4877ee1f0c299c44248e5712f420e446fbe/Doc/Status.png) |
+| Reports | ![Reports](https://github.com/ZeroTrace0245/Project_Java/blob/76f8c4877ee1f0c299c44248e5712f420e446fbe/Doc/Reports.png) |
 
 ## How it works
 - **Entry point**: `com.example.clinic.MainApp` wires the login view and, on success, opens `DashboardView`.
