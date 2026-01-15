@@ -22,7 +22,11 @@ public class MainApp extends Application {
     }
 
     private void showDashboard(Stage stage, AppUser user) {
-        var dashboard = new DashboardView(repository, settingsStore);
+        Runnable logout = () -> {
+            var loginView = new LoginView(authService, settingsStore, this::showDashboard);
+            loginView.start(stage);
+        };
+        var dashboard = new DashboardView(repository, settingsStore, logout);
         dashboard.start(stage, user);
     }
 

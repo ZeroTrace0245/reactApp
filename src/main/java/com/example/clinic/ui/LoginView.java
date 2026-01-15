@@ -79,7 +79,7 @@ public class LoginView {
                 "Live status feed and low-stock alerts",
                 "One-click CSV exports for audits"
         }) {
-            Label bullet = new Label("• " + point);
+            Label bullet = new Label("- " + point);
             bullet.getStyleClass().add("hero-bullet");
             highlights.getChildren().add(bullet);
         }

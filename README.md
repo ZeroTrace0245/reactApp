@@ -1,4 +1,4 @@
-# Clinic Manager
+﻿# Clinic Manager
 
 A JavaFX desktop dashboard for small clinics to manage users, patient records, inventory, and live status updates. Ships with demo users and sample patient/inventory data so you can explore the UI immediately, and supports CSV export for patients and users.
 

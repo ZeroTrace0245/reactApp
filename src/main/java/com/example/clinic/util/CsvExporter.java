@@ -44,4 +44,23 @@ public final class CsvExporter {
         }
         return target;
     }
+
+    public static Path exportStatusSnapshot(List<PatientRecord> patients) throws IOException {
+        Path exports = Path.of("exports");
+        Files.createDirectories(exports);
+        LocalDateTime now = LocalDateTime.now();
+        String filename = "status-" + now.format(FORMATTER) + ".csv";
+        Path target = exports.resolve(filename);
+        try (var writer = Files.newBufferedWriter(target)) {
+            writer.write("Name,Status,Room,CapturedAt\n");
+            for (PatientRecord patient : patients) {
+                writer.write(String.format("%s,%s,%s,%s\n",
+                        patient.getName(),
+                        patient.getStatus(),
+                        patient.getRoom(),
+                        now));
+            }
+        }
+        return target;
+    }
 }

@@ -203,6 +203,46 @@
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.65), 12, 0, 0, 4);
 }
 
+/* Alert / dialog theming */
+.dialog-pane {
+    -fx-background-color: #161b23;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #2b3244;
+}
+
+.dialog-pane.app-dialog {
+    -fx-border-color: #5865f2;
+}
+
+.dialog-pane.app-dialog-danger {
+    -fx-border-color: #f04747;
+}
+
+.dialog-pane .header-panel, .dialog-pane .graphic-container {
+    -fx-background-color: transparent;
+}
+
+.dialog-pane .label {
+    -fx-text-fill: #e9edff;
+}
+
+.dialog-pane .content.label {
+    -fx-text-fill: #cfd6f8;
+}
+
+.dialog-pane .button-bar .button {
+    -fx-background-color: linear-gradient(to right, #5865f2, #6f7bff);
+    -fx-text-fill: white;
+    -fx-font-weight: 600;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.dialog-pane.app-dialog-danger .button-bar .button {
+    -fx-background-color: linear-gradient(to right, #f04747, #ff6b6b);
+}
+
 .table-view {
     -fx-background-color: transparent;
 }

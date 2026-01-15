@@ -4,8 +4,11 @@ import com.example.clinic.data.UserRepository;
 import com.example.clinic.model.AppUser;
 import com.example.clinic.model.InventoryItem;
 import com.example.clinic.model.PatientRecord;
+import com.example.clinic.model.Appointment;
 import com.example.clinic.settings.SettingsStore;
 import com.example.clinic.ui.PatientEntryDialog;
+import com.example.clinic.ui.InventoryEntryDialog;
+import com.example.clinic.ui.AppointmentEntryDialog;
 import com.example.clinic.util.CsvExporter;
 import javafx.animation.KeyFrame;
 import javafx.animation.FadeTransition;
@@ -22,6 +25,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -43,6 +47,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
@@ -50,9 +55,11 @@ import java.util.Random;
 public class DashboardView {
     private final UserRepository repository;
     private final SettingsStore settingsStore;
+    private final Runnable logoutAction;
     private final ObservableList<AppUser> users = FXCollections.observableArrayList();
     private final ObservableList<PatientRecord> patients = FXCollections.observableArrayList();
     private final ObservableList<InventoryItem> inventoryItems = FXCollections.observableArrayList();
+    private final ObservableList<Appointment> appointments = FXCollections.observableArrayList();
     private final ObservableList<String> statusMessages = FXCollections.observableArrayList();
 
     private final Text activePatientsValue = new Text();
@@ -64,13 +71,17 @@ public class DashboardView {
     private AppUser loggedIn;
     private Stage primaryStage;
     private TableView<PatientRecord> patientTable;
+    private TableView<InventoryItem> inventoryTable;
+    private TableView<Appointment> appointmentTable;
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+    private static final DateTimeFormatter APPT_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private final Random random = new Random();
     private final Timeline realtimeTimeline = createRealtimeTimeline();
 
-    public DashboardView(UserRepository repository, SettingsStore settingsStore) {
+    public DashboardView(UserRepository repository, SettingsStore settingsStore, Runnable logoutAction) {
         this.repository = repository;
         this.settingsStore = settingsStore;
+        this.logoutAction = logoutAction;
         initializeSampleData();
     }
 
@@ -84,11 +95,17 @@ public class DashboardView {
         );
 
         inventoryItems.setAll(
-                new InventoryItem("Surgical Masks", 320, "Healthy"),
-                new InventoryItem("Intravenous Sets", 78, "Reorder soon"),
-                new InventoryItem("Standard Syringes", 610, "Healthy"),
-                new InventoryItem("Isolation Gowns", 42, "Critical"),
-                new InventoryItem("Defibrillator Pads", 6, "Critical")
+                new InventoryItem("INV-420115", "Surgical Masks", 320, 0.35, "Healthy"),
+                new InventoryItem("INV-420116", "Intravenous Sets", 78, 4.80, "Reorder soon"),
+                new InventoryItem("INV-420117", "Standard Syringes", 610, 0.85, "Healthy"),
+                new InventoryItem("INV-420118", "Isolation Gowns", 42, 6.25, "Critical"),
+                new InventoryItem("INV-420119", "Defibrillator Pads", 6, 12.00, "Critical")
+        );
+
+        appointments.setAll(
+                new Appointment("APT-301100", "Mara Vega", "Dr. Carter", LocalDateTime.now().plusHours(3), "Post-op check"),
+                new Appointment("APT-301101", "Hector Liao", "Nurse Samuels", LocalDateTime.now().plusHours(6), "Ventilator check"),
+                new Appointment("APT-301102", "Priya Sen", "Dr. Ortega", LocalDateTime.now().plusDays(1), "Therapy consult")
         );
 
         statusMessages.setAll(
@@ -129,6 +146,14 @@ public class DashboardView {
 
         root.setCenter(scrollPane);
 
+        Button logoutFab = new Button("Logout");
+        logoutFab.getStyleClass().add("secondary-button");
+        logoutFab.setOnAction(e -> logout());
+        HBox bottomBar = new HBox(logoutFab);
+        bottomBar.setAlignment(Pos.CENTER_LEFT);
+        bottomBar.setPadding(new Insets(8, 0, 0, 4));
+        root.setBottom(bottomBar);
+
         refreshUsers();
 
         Scene scene = new Scene(root);
@@ -144,12 +169,13 @@ public class DashboardView {
     private HBox buildNavBar() {
         Button overviewBtn = createNavButton("overview", "Overview");
         Button patientsBtn = createNavButton("patients", "Patients");
+        Button appointmentsBtn = createNavButton("appointments", "Appointments");
         Button inventoryBtn = createNavButton("inventory", "Inventory");
         Button statusBtn = createNavButton("status", "Status");
         Button reportsBtn = createNavButton("reports", "Reports");
         Button settingsBtn = createNavButton("settings", "Settings");
 
-        HBox nav = new HBox(10, overviewBtn, patientsBtn, inventoryBtn, statusBtn, reportsBtn, settingsBtn);
+        HBox nav = new HBox(10, overviewBtn, patientsBtn, appointmentsBtn, inventoryBtn, statusBtn, reportsBtn, settingsBtn);
         nav.setAlignment(Pos.CENTER_LEFT);
         activateNav(overviewBtn);
         return nav;
@@ -179,6 +205,7 @@ public class DashboardView {
     private void navigateTo(String id) {
         Node target = switch (id) {
             case "patients" -> buildPatientsView();
+            case "appointments" -> buildAppointmentsView();
             case "inventory" -> buildInventoryView();
             case "status" -> buildStatusView();
             case "reports" -> buildReportsView();
@@ -263,6 +290,7 @@ public class DashboardView {
     private Node buildContentGrid() {
         VBox leftColumn = new VBox(14,
                 buildPatientsView(),
+                buildAppointmentsView(),
                 buildStatusView()
         );
 
@@ -316,13 +344,59 @@ public class DashboardView {
         return createSectionCard(layout);
     }
 
+    private Node buildAppointmentsView() {
+        appointmentTable = createAppointmentTable();
+
+        Button addButton = new Button("New Appointment");
+        addButton.getStyleClass().add("primary-button");
+        addButton.setOnAction(e -> addAppointment());
+
+        Button editButton = new Button("Edit");
+        editButton.getStyleClass().add("secondary-button");
+        editButton.setOnAction(e -> editAppointment());
+
+        Button deleteButton = new Button("Cancel");
+        deleteButton.getStyleClass().add("danger-button");
+        deleteButton.setOnAction(e -> removeAppointment());
+
+        HBox actions = new HBox(10, addButton, editButton, deleteButton);
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        Text heading = new Text("Appointments");
+        heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
+        heading.getStyleClass().add("section-heading");
+
+        VBox layout = new VBox(12, heading, appointmentTable, actions);
+        layout.setAlignment(Pos.TOP_LEFT);
+        VBox.setVgrow(appointmentTable, Priority.ALWAYS);
+        return createSectionCard(layout);
+    }
+
     private Node buildInventoryView() {
         Text heading = new Text("Inventory Control");
         heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
         heading.getStyleClass().add("section-heading");
 
-        VBox view = new VBox(12, heading, buildInventoryList());
+        inventoryTable = createInventoryTable();
+
+        Button addButton = new Button("Add Item");
+        addButton.getStyleClass().add("primary-button");
+        addButton.setOnAction(e -> addInventoryItem());
+
+        Button editButton = new Button("Edit Item");
+        editButton.getStyleClass().add("secondary-button");
+        editButton.setOnAction(e -> editInventoryItem());
+
+        Button deleteButton = new Button("Remove");
+        deleteButton.getStyleClass().add("danger-button");
+        deleteButton.setOnAction(e -> removeInventoryItem());
+
+        HBox actions = new HBox(10, addButton, editButton, deleteButton);
+        actions.setAlignment(Pos.CENTER_LEFT);
+
+        VBox view = new VBox(12, heading, inventoryTable, actions);
         view.setAlignment(Pos.TOP_LEFT);
+        VBox.setVgrow(inventoryTable, Priority.ALWAYS);
         return createSectionCard(view);
     }
 
@@ -331,7 +405,11 @@ public class DashboardView {
         heading.setFont(Font.font("Segoe UI", FontWeight.BOLD, 20));
         heading.getStyleClass().add("section-heading");
 
-        VBox view = new VBox(12, heading, buildStatusList());
+        Button exportStatus = new Button("Export Status Snapshot");
+        exportStatus.getStyleClass().add("secondary-button");
+        exportStatus.setOnAction(e -> exportStatusSnapshot());
+
+        VBox view = new VBox(12, heading, buildStatusList(), exportStatus);
         view.setAlignment(Pos.TOP_LEFT);
         return createSectionCard(view);
     }
@@ -376,7 +454,15 @@ public class DashboardView {
             info("Settings cleared", "Settings JSON has been reset.");
         });
 
-        VBox view = new VBox(12, heading, clearSettingsButton);
+        Button resetPasswordButton = new Button("Reset Password");
+        resetPasswordButton.getStyleClass().add("warning-button");
+        resetPasswordButton.setOnAction(e -> resetPassword());
+
+        Button logoutButton = new Button("Log out");
+        logoutButton.getStyleClass().add("secondary-button");
+        logoutButton.setOnAction(e -> logout());
+
+        VBox view = new VBox(12, heading, clearSettingsButton, resetPasswordButton, logoutButton);
         view.setAlignment(Pos.TOP_LEFT);
         return createSectionCard(view);
     }
@@ -397,6 +483,74 @@ public class DashboardView {
         table.getColumns().addAll(nameColumn, statusColumn, roomColumn);
         table.setPlaceholder(new Label("No patient records yet"));
         table.setPrefHeight(280);
+        return table;
+    }
+
+    private TableView<Appointment> createAppointmentTable() {
+        TableView<Appointment> table = new TableView<>(appointments);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        TableColumn<Appointment, String> idColumn = new TableColumn<>("ID");
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+
+        TableColumn<Appointment, String> patientColumn = new TableColumn<>("Patient");
+        patientColumn.setCellValueFactory(new PropertyValueFactory<>("patientName"));
+
+        TableColumn<Appointment, String> clinicianColumn = new TableColumn<>("Clinician");
+        clinicianColumn.setCellValueFactory(new PropertyValueFactory<>("clinician"));
+
+        TableColumn<Appointment, LocalDateTime> timeColumn = new TableColumn<>("Scheduled");
+        timeColumn.setCellValueFactory(new PropertyValueFactory<>("scheduledAt"));
+        timeColumn.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(LocalDateTime value, boolean empty) {
+                super.updateItem(value, empty);
+                setText(empty || value == null ? null : value.format(APPT_FORMATTER));
+            }
+        });
+
+        TableColumn<Appointment, String> notesColumn = new TableColumn<>("Notes");
+        notesColumn.setCellValueFactory(new PropertyValueFactory<>("notes"));
+
+        table.getColumns().addAll(idColumn, patientColumn, clinicianColumn, timeColumn, notesColumn);
+        table.setPlaceholder(new Label("No appointments scheduled"));
+        table.setPrefHeight(220);
+        return table;
+    }
+
+    private TableView<InventoryItem> createInventoryTable() {
+        TableView<InventoryItem> table = new TableView<>(inventoryItems);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        TableColumn<InventoryItem, String> idColumn = new TableColumn<>("ID");
+        idColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+
+        TableColumn<InventoryItem, String> nameColumn = new TableColumn<>("Item");
+        nameColumn.setCellValueFactory(new PropertyValueFactory<>("name"));
+
+        TableColumn<InventoryItem, Integer> quantityColumn = new TableColumn<>("Qty");
+        quantityColumn.setCellValueFactory(new PropertyValueFactory<>("quantity"));
+
+        TableColumn<InventoryItem, Double> priceColumn = new TableColumn<>("Price");
+        priceColumn.setCellValueFactory(new PropertyValueFactory<>("price"));
+        priceColumn.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(Double price, boolean empty) {
+                super.updateItem(price, empty);
+                if (empty || price == null) {
+                    setText(null);
+                } else {
+                    setText(String.format("$%.2f", price));
+                }
+            }
+        });
+
+        TableColumn<InventoryItem, String> statusColumn = new TableColumn<>("Status");
+        statusColumn.setCellValueFactory(new PropertyValueFactory<>("status"));
+
+        table.getColumns().addAll(idColumn, nameColumn, quantityColumn, priceColumn, statusColumn);
+        table.setPlaceholder(new Label("No inventory items yet"));
+        table.setPrefHeight(220);
         return table;
     }
 
@@ -489,6 +643,152 @@ public class DashboardView {
         });
     }
 
+    private void addAppointment() {
+        if (!isClinician()) {
+            info("Restricted", "Only doctors or nurses can create appointments.");
+            return;
+        }
+        Optional<Appointment> result = AppointmentEntryDialog.request(primaryStage, null, this::generateAppointmentId, loggedIn.getUsername());
+        result.ifPresent(appt -> {
+            appointments.add(0, appt);
+            statusMessages.add(0, "Scheduled appointment " + appt.getId() + " for " + appt.getPatientName() + ".");
+            if (statusMessages.size() > 12) {
+                statusMessages.remove(statusMessages.size() - 1);
+            }
+            info("Appointment created", "Appointment set for " + appt.getPatientName() + ".");
+        });
+    }
+
+    private void editAppointment() {
+        if (!isClinician()) {
+            info("Restricted", "Only doctors or nurses can edit appointments.");
+            return;
+        }
+        Appointment selected = appointmentTable == null ? null : appointmentTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            info("Select appointment", "Choose an appointment first.");
+            return;
+        }
+        Optional<Appointment> result = AppointmentEntryDialog.request(primaryStage, selected, () -> selected.getId(), loggedIn.getUsername());
+        result.ifPresent(appt -> {
+            int index = appointments.indexOf(selected);
+            if (index >= 0) {
+                appointments.set(index, appt);
+                statusMessages.add(0, "Updated appointment " + appt.getId() + ".");
+                if (statusMessages.size() > 12) {
+                    statusMessages.remove(statusMessages.size() - 1);
+                }
+                info("Appointment updated", "Appointment " + appt.getId() + " saved.");
+            }
+        });
+    }
+
+    private void removeAppointment() {
+        if (!isClinician()) {
+            info("Restricted", "Only doctors or nurses can cancel appointments.");
+            return;
+        }
+        Appointment selected = appointmentTable == null ? null : appointmentTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            info("Select appointment", "Choose an appointment to cancel.");
+            return;
+        }
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Cancel appointment");
+        confirm.setHeaderText("Confirm cancellation");
+        confirm.setContentText("Cancel " + selected.getId() + " for " + selected.getPatientName() + "?");
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                appointments.remove(selected);
+                statusMessages.add(0, "Cancelled appointment " + selected.getId() + ".");
+                if (statusMessages.size() > 12) {
+                    statusMessages.remove(statusMessages.size() - 1);
+                }
+            }
+        });
+    }
+
+    private boolean isClinician() {
+        if (loggedIn == null) {
+            return false;
+        }
+        String role = loggedIn.getRole().toLowerCase();
+        return role.contains("doctor") || role.contains("nurse");
+    }
+
+    private String generateAppointmentId() {
+        return "APT-" + (300000 + random.nextInt(90000));
+    }
+
+    private void addInventoryItem() {
+        if (primaryStage == null) {
+            return;
+        }
+        Optional<InventoryItem> entry = InventoryEntryDialog.request(primaryStage, null, this::generateInventoryId);
+        entry.ifPresent(item -> {
+            inventoryItems.add(0, item);
+            refreshStats();
+            statusMessages.add(0, "Added inventory item " + item.getName() + " (" + item.getId() + ").");
+            if (statusMessages.size() > 12) {
+                statusMessages.remove(statusMessages.size() - 1);
+            }
+            info("Item added", item.getName() + " has been added to inventory.");
+        });
+    }
+
+    private void editInventoryItem() {
+        if (inventoryTable == null) {
+            return;
+        }
+        InventoryItem selected = inventoryTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            info("Select item", "Please choose an inventory item first.");
+            return;
+        }
+        Optional<InventoryItem> updated = InventoryEntryDialog.request(primaryStage, selected, () -> selected.getId());
+        updated.ifPresent(item -> {
+            int index = inventoryItems.indexOf(selected);
+            if (index >= 0) {
+                inventoryItems.set(index, item);
+                refreshStats();
+                statusMessages.add(0, "Updated " + item.getName() + " (" + item.getId() + ").");
+                if (statusMessages.size() > 12) {
+                    statusMessages.remove(statusMessages.size() - 1);
+                }
+                info("Inventory updated", "Item " + item.getName() + " saved.");
+            }
+        });
+    }
+
+    private void removeInventoryItem() {
+        if (inventoryTable == null) {
+            return;
+        }
+        InventoryItem selected = inventoryTable.getSelectionModel().getSelectedItem();
+        if (selected == null) {
+            info("Select item", "Choose an inventory item to remove.");
+            return;
+        }
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Remove item");
+        confirm.setHeaderText("Confirm removal");
+        confirm.setContentText("Remove " + selected.getName() + " from inventory?");
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                inventoryItems.remove(selected);
+                refreshStats();
+                statusMessages.add(0, selected.getName() + " removed from inventory.");
+                if (statusMessages.size() > 12) {
+                    statusMessages.remove(statusMessages.size() - 1);
+                }
+            }
+        });
+    }
+
+    private String generateInventoryId() {
+        return "INV-" + (100000 + random.nextInt(900000));
+    }
+
     private void exportPatientRecords() {
         try {
             Path exported = CsvExporter.exportPatients(patients);
@@ -498,21 +798,17 @@ public class DashboardView {
         }
     }
 
-    private ListView<InventoryItem> buildInventoryList() {
-        ListView<InventoryItem> inventoryList = new ListView<>(inventoryItems);
-        inventoryList.setPrefHeight(150);
-        inventoryList.setCellFactory(listView -> new ListCell<>() {
-            @Override
-            protected void updateItem(InventoryItem item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item.getName() + " - " + item.getQuantity() + " units - " + item.getStatus());
-                }
+    private void exportStatusSnapshot() {
+        try {
+            Path exported = CsvExporter.exportStatusSnapshot(patients);
+            statusMessages.add(0, "Status snapshot exported at " + TIME_FORMATTER.format(LocalTime.now()) + ".");
+            if (statusMessages.size() > 12) {
+                statusMessages.remove(statusMessages.size() - 1);
             }
-        });
-        return inventoryList;
+            info("Export completed", "Status snapshot saved to " + exported.toAbsolutePath());
+        } catch (IOException e) {
+            error("Export failed", "Unable to write status snapshot: " + e.getMessage());
+        }
     }
 
     private ListView<String> buildStatusList() {
@@ -627,10 +923,35 @@ public class DashboardView {
         }
     }
 
+    private void resetPassword() {
+        if (loggedIn == null) {
+            return;
+        }
+        Optional<String> newPassword = PromptDialog.request("Reset Password", "New Password", "NewPass123");
+        if (newPassword.isEmpty() || newPassword.get().trim().isEmpty()) {
+            return;
+        }
+        loggedIn = loggedIn.withNewPassword(newPassword.get().trim());
+        repository.save(loggedIn);
+        statusMessages.add(0, "Password updated for user " + loggedIn.getUsername() + ".");
+        if (statusMessages.size() > 12) {
+            statusMessages.remove(statusMessages.size() - 1);
+        }
+        info("Password updated", "Password updated for " + loggedIn.getUsername());
+    }
+
+    private void logout() {
+        realtimeTimeline.stop();
+        if (logoutAction != null) {
+            logoutAction.run();
+        }
+    }
+
     private void info(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
         alert.setTitle(title);
         alert.setContentText(message);
+        alert.getDialogPane().getStyleClass().add("app-dialog");
         alert.showAndWait();
     }
 
@@ -638,6 +959,7 @@ public class DashboardView {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setContentText(message);
+        alert.getDialogPane().getStyleClass().add("app-dialog-danger");
         alert.showAndWait();
     }
 

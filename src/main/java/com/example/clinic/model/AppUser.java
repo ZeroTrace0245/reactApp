@@ -40,6 +40,13 @@ public final class AppUser {
         return new AppUser(id, username, role, passwordHash, salt);
     }
 
+    public AppUser withNewPassword(String plainPassword) {
+        byte[] newSalt = new byte[16];
+        RANDOM.nextBytes(newSalt);
+        String newHash = hashPassword(plainPassword, newSalt);
+        return new AppUser(id, username, role, newHash, newSalt);
+    }
+
     private static String hashPassword(String password, byte[] salt) {
         try {
             PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, ITERATIONS, KEY_LENGTH);

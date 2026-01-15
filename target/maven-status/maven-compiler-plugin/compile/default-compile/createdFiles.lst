@@ -1,10 +1,14 @@
+com\example\clinic\ui\AppointmentEntryDialog.class
 com\example\clinic\model\AppUser.class
 com\example\clinic\data\UserRepository.class
 com\example\clinic\service\AuthService.class
 com\example\clinic\model\PatientRecord.class
 com\example\clinic\MainApp.class
 com\example\clinic\ui\DashboardView$1.class
+com\example\clinic\ui\DashboardView$3.class
+com\example\clinic\model\Appointment.class
 com\example\clinic\settings\SettingsStore$SettingsData.class
+com\example\clinic\ui\InventoryEntryDialog.class
 com\example\clinic\ui\DashboardView.class
 com\example\clinic\ui\RoundedPane.class
 com\example\clinic\settings\SettingsStore.class
