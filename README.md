@@ -32,7 +32,7 @@ A JavaFX desktop dashboard for small clinics to manage users, patient records, i
 ## Setup & build (Maven)
 ```bash
 # clone
-git clone <repo-url>
+git clone https://github.com/ZeroTrace0245/Project_Java.git
 cd Project_Java
 
 # download dependencies and build
