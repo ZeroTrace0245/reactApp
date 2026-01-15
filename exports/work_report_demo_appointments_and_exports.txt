@@ -1,0 +1,16 @@
+Work Report: Demo Appointments & Export Documentation (2024-06-17)
+
+Summary
+- Added appointment demo data and refreshed docs for exports and use-case coverage.
+
+Changes
+- Seeded mock appointments (IDs APT-301100..102) with patient, clinician, schedule, and notes for table preview.
+- Updated documentation to describe status snapshot CSV export and added `docs/UseCase_UML.md` with a PlantUML use-case diagram.
+
+Impact
+- Demo builds show populated appointments; no backend persistence added.
+- Documentation now explains export interactions and actor/use-case mapping.
+
+Verification
+- Manual check: appointments table renders with seeded entries; status export doc present.
+- Pending team review before rollout; no production deployment.

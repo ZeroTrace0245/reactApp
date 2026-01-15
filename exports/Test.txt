@@ -1,0 +1,14 @@
+Commit placeholder 2 (2024-06-16)
+
+Summary
+- UI refinements for spacing and theming to improve visual consistency.
+
+Changes
+- Adjusted card spacing/margins in dashboard sections for alignment across columns.
+- Applied unified dialog styling (app.css) to entry prompts for patients/inventory/appointments to match the dark theme.
+
+Impact
+- Visual polish only; no change to workflows or data handling.
+
+Verification
+- Manual check: dialogs inherit theme, buttons align correctly, no layout overflow observed.

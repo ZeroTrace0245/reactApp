@@ -1,0 +1,16 @@
+Commit placeholder 1 (2024-06-15)
+
+Summary
+- Seeded demo data for patients and inventory to ensure the dashboard renders meaningful content out of the box.
+
+Changes
+- Added five patient records (Mara Vega, Hector Liao, Priya Sen, Elena Brooks, Ravi Patel) with status/room assignments.
+- Added inventory items with IDs and pricing (masks, IV sets, syringes, gowns, defibrillator pads) to drive the inventory table.
+
+Impact
+- UI previews show populated lists/tables; no runtime logic changes.
+- Low inventory metric now reflects seeded counts (<100 threshold).
+
+Verification
+- Manual check: launched dashboard, verified patients and inventory tables populate and stats update.
+- No automated tests affected (data-only change).
