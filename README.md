@@ -11,7 +11,6 @@ A JavaFX desktop dashboard for small clinics to manage users, patient records, i
 - **Settings**: Persist/clear last login info stored in a JSON file.
 
 ## Screenshots
-Drop PNGs into `docs/screenshots/` with the names below to have the previews render on GitHub.
 
 | Screen | Preview |
 | --- | --- |
